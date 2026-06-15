@@ -487,6 +487,7 @@
     trail = [];
     spawnAcc = 0;
     spawnRate = 1.0;
+    exitSaved = false;
     running = true;
     lastFrame = performance.now();
 
@@ -502,6 +503,7 @@
     overCombo.textContent = maxCombo;
     screenOver.classList.remove('hidden');
     playGameOver();
+    savePending();
     submitScore();
   }
 
@@ -516,6 +518,7 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: playerName, score: score, combo: maxCombo })
     }).then(function (res) {
+      if (res.ok) clearPending();
       overStatus.textContent = res.ok ? '✓ 已提交到排行榜' : '提交失败';
     }).catch(function () {
       overStatus.textContent = '网络错误，未提交';
@@ -576,26 +579,60 @@
   };
 
   /* ====== EXIT SAVE ====== */
+  var PENDING_KEY = 'fruit-slash-pending';
+  var exitSaved = false;
+
+  function savePending() {
+    if (score <= 0 || !playerName) return;
+    try {
+      localStorage.setItem(PENDING_KEY, JSON.stringify({
+        name: playerName, score: score, combo: maxCombo, ts: Date.now()
+      }));
+    } catch (e) {}
+  }
+
+  function clearPending() {
+    try { localStorage.removeItem(PENDING_KEY); } catch (e) {}
+  }
+
+  function submitPending() {
+    try {
+      var raw = localStorage.getItem(PENDING_KEY);
+      if (!raw) return;
+      var data = JSON.parse(raw);
+      if (Date.now() - data.ts > 86400000) { clearPending(); return; }
+      fetch('/api/leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: data.name, score: data.score, combo: data.combo })
+      }).then(function (res) {
+        if (res.ok) clearPending();
+      }).catch(function () {});
+    } catch (e) { clearPending(); }
+  }
+
   function saveOnExit() {
-    if (!running || score <= 0 || !playerName) return;
-    running = false;
-    var data = JSON.stringify({ name: playerName, score: score, combo: maxCombo });
-    // sendBeacon works even when the page is closing
+    if (exitSaved || !running || score <= 0 || !playerName) return;
+    exitSaved = true;
+    savePending();
+    var blob = new Blob(
+      [JSON.stringify({ name: playerName, score: score, combo: maxCombo })],
+      { type: 'application/json' }
+    );
     if (navigator.sendBeacon) {
-      navigator.sendBeacon('/api/leaderboard', new Blob([data], { type: 'application/json' }));
-    } else {
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', '/api/leaderboard', false);
-      xhr.setRequestHeader('Content-Type', 'application/json');
-      xhr.send(data);
+      var sent = navigator.sendBeacon('/api/leaderboard', blob);
+      if (sent) clearPending();
     }
   }
 
   document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState === 'hidden') saveOnExit();
+    if (document.visibilityState === 'hidden' && running) saveOnExit();
   });
   window.addEventListener('pagehide', saveOnExit);
   window.addEventListener('beforeunload', saveOnExit);
+
+  // Submit any pending score from a previous interrupted session
+  submitPending();
 
   /* ====== INIT ====== */
   resize();

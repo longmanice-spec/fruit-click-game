@@ -1,7 +1,6 @@
 (function () {
   'use strict';
 
-  /* ====== CONFIG ====== */
   var DURATION = 60;
   var FRUITS = [
     { emoji: '🍎', pts: 1, fill: '#e74c3c', stroke: '#c0392b' },
@@ -15,9 +14,9 @@
     { emoji: '🍒', pts: 3, fill: '#d63031', stroke: '#b71c1c' },
   ];
 
-  /* ====== DOM ====== */
   var canvas = document.getElementById('game-canvas');
   var ctx = canvas.getContext('2d');
+
   var hud = document.getElementById('hud');
   var hudScore = document.getElementById('hud-score');
   var hudCombo = document.getElementById('hud-combo');
@@ -34,19 +33,20 @@
   var overStatus = document.getElementById('over-status');
   var rankList = document.getElementById('rank-list');
 
-  /* ====== STATE ====== */
-  var W, H, dpr;
+  var W = 0, H = 0, dpr = 1;
   var running = false;
-  var score, combo, maxCombo, timeLeft;
-  var objects, particles, trail;
-  var spawnAcc, spawnRate;
-  var lastFrame;
+  var score = 0, combo = 0, maxCombo = 0, timeLeft = DURATION;
+  var objects = [];
+  var particles = [];
+  var trail = [];
+  var spawnAcc = 0, spawnRate = 1.0;
+  var lastFrame = 0;
+  var comboTime = 0;
   var playerName = '';
   var pointerDown = false;
   var pointer = { x: 0, y: 0 };
   var prevPointer = { x: 0, y: 0 };
 
-  /* ====== RESIZE ====== */
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth;
@@ -57,16 +57,14 @@
     canvas.style.height = H + 'px';
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
-  window.addEventListener('resize', resize);
-  resize();
 
-  /* ====== INPUT ====== */
   function ptrPos(e) {
     var t = e.touches ? e.touches[0] : e;
     return { x: t.clientX, y: t.clientY };
   }
 
   function onDown(e) {
+    if (!running) return;
     e.preventDefault();
     pointerDown = true;
     pointer = ptrPos(e);
@@ -75,16 +73,18 @@
   }
 
   function onMove(e) {
+    if (!running) return;
     e.preventDefault();
     if (!pointerDown) return;
     prevPointer = { x: pointer.x, y: pointer.y };
     pointer = ptrPos(e);
     trail.push({ x: pointer.x, y: pointer.y, t: performance.now() });
     if (trail.length > 18) trail.shift();
-    if (running) checkHits();
+    checkHits();
   }
 
   function onUp(e) {
+    if (!running) return;
     e.preventDefault();
     pointerDown = false;
     trail = [];
@@ -99,7 +99,6 @@
   canvas.addEventListener('touchend', onUp, { passive: false });
   canvas.addEventListener('touchcancel', onUp, { passive: false });
 
-  /* ====== HIT DETECTION ====== */
   function checkHits() {
     var dx = pointer.x - prevPointer.x;
     var dy = pointer.y - prevPointer.y;
@@ -115,12 +114,14 @@
         if (o.bomb) {
           score = Math.max(0, score - 10);
           combo = 0;
+          comboTime = 0;
           spawnBurst(o.x, o.y, '#ff4444', 10);
           spawnBurst(o.x, o.y, '#ff8800', 6);
         } else {
           var mul = 1 + Math.floor(combo / 3);
           score += o.data.pts * mul;
           combo++;
+          comboTime = 0;
           if (combo > maxCombo) maxCombo = combo;
           spawnBurst(o.x, o.y, o.data.fill, 8);
         }
@@ -129,15 +130,14 @@
     }
   }
 
-  /* ====== PARTICLES ====== */
   function spawnBurst(x, y, color, n) {
     for (var i = 0; i < n; i++) {
-      var angle = Math.random() * Math.PI * 2;
-      var speed = 2 + Math.random() * 5;
+      var angle = Math.random() * 6.28;
+      var spd = 2 + Math.random() * 5;
       particles.push({
         x: x, y: y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd,
         r: 3 + Math.random() * 4,
         color: color,
         life: 1
@@ -145,7 +145,6 @@
     }
   }
 
-  /* ====== SPAWN FRUIT ====== */
   function spawnOne() {
     var margin = 50;
     var x = margin + Math.random() * (W - margin * 2);
@@ -166,7 +165,6 @@
     });
   }
 
-  /* ====== HUD ====== */
   function updateHud() {
     hudScore.textContent = score;
     var secs = Math.ceil(timeLeft);
@@ -184,7 +182,6 @@
     }
   }
 
-  /* ====== GAME LOOP ====== */
   function loop(now) {
     if (!running) return;
     requestAnimationFrame(loop);
@@ -192,7 +189,6 @@
     var dt = Math.min(now - lastFrame, 40) / 1000;
     lastFrame = now;
 
-    // Timer
     timeLeft -= dt;
     if (timeLeft <= 0) {
       timeLeft = 0;
@@ -202,25 +198,21 @@
       return;
     }
 
-    // Combo decay
+    // combo decay
     if (combo > 0) {
-      if (!loop._comboTime) loop._comboTime = 0;
-      loop._comboTime += dt;
-      if (loop._comboTime > 0.8) {
+      comboTime += dt;
+      if (comboTime > 1.0) {
         combo = 0;
-        loop._comboTime = 0;
-        updateHud();
+        comboTime = 0;
       }
     }
-    // Reset timer on combo hit
-    if (combo > 0) loop._comboTime = 0;
 
-    // Difficulty
+    // difficulty
     var elapsed = DURATION - timeLeft;
     var diff = 1 + Math.floor(elapsed / 12);
-    spawnRate = Math.max(0.3, 1.0 - diff * 0.06);
+    spawnRate = Math.max(0.35, 1.0 - diff * 0.06);
 
-    // Spawn
+    // spawn
     spawnAcc += dt;
     if (spawnAcc >= spawnRate) {
       spawnAcc = 0;
@@ -228,7 +220,7 @@
       for (var i = 0; i < count; i++) spawnOne();
     }
 
-    // Update objects
+    // update objects
     for (var i = objects.length - 1; i >= 0; i--) {
       var o = objects[i];
       if (o.hit) { objects.splice(i, 1); continue; }
@@ -239,7 +231,7 @@
       if (o.y > H + 80) objects.splice(i, 1);
     }
 
-    // Update particles
+    // update particles
     for (var i = particles.length - 1; i >= 0; i--) {
       var p = particles[i];
       p.x += p.vx;
@@ -253,18 +245,17 @@
     render();
   }
 
-  /* ====== RENDER ====== */
   function render() {
     ctx.clearRect(0, 0, W, H);
 
-    // Background gradient
+    // bg
     var bg = ctx.createLinearGradient(0, 0, 0, H);
     bg.addColorStop(0, '#1a0a2e');
     bg.addColorStop(1, '#0f3460');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
-    // Particles
+    // particles
     for (var i = 0; i < particles.length; i++) {
       var p = particles[i];
       ctx.globalAlpha = p.life;
@@ -275,7 +266,7 @@
     }
     ctx.globalAlpha = 1;
 
-    // Objects
+    // objects
     for (var i = 0; i < objects.length; i++) {
       var o = objects[i];
       if (o.hit) continue;
@@ -284,34 +275,35 @@
       ctx.rotate(o.rot);
 
       if (o.bomb) {
-        // Draw bomb as filled circle + fuse
+        // bomb body
         ctx.beginPath();
         ctx.arc(0, 0, o.r, 0, 6.28);
         ctx.fillStyle = '#2d2d2d';
         ctx.fill();
-        ctx.strokeStyle = '#555';
+        ctx.strokeStyle = '#666';
         ctx.lineWidth = 2;
         ctx.stroke();
-        // Fuse
+        // fuse
         ctx.beginPath();
-        ctx.moveTo(0, -o.r);
-        ctx.lineTo(4, -o.r - 12);
-        ctx.strokeStyle = '#ff8800';
-        ctx.lineWidth = 3;
+        ctx.moveTo(0, -o.r + 2);
+        ctx.quadraticCurveTo(8, -o.r - 8, 4, -o.r - 14);
+        ctx.strokeStyle = '#aa6600';
+        ctx.lineWidth = 2.5;
         ctx.stroke();
-        // Spark
+        // spark
         ctx.beginPath();
-        ctx.arc(4, -o.r - 12, 4, 0, 6.28);
-        ctx.fillStyle = '#ffdd00';
+        ctx.arc(4, -o.r - 14, 4, 0, 6.28);
+        ctx.fillStyle = '#ffcc00';
         ctx.fill();
-        // Skull icon
-        ctx.fillStyle = '#fff';
-        ctx.font = '20px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('💣', 0, 0);
+        // X mark
+        ctx.strokeStyle = '#ff3333';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(-10, -10); ctx.lineTo(10, 10);
+        ctx.moveTo(10, -10); ctx.lineTo(-10, 10);
+        ctx.stroke();
       } else {
-        // Fruit: colored circle + emoji
+        // fruit colored circle
         ctx.beginPath();
         ctx.arc(0, 0, o.r, 0, 6.28);
         ctx.fillStyle = o.data.fill;
@@ -319,15 +311,13 @@
         ctx.strokeStyle = o.data.stroke;
         ctx.lineWidth = 3;
         ctx.stroke();
-
-        // Highlight
+        // shine
         ctx.beginPath();
-        ctx.arc(-o.r * 0.3, -o.r * 0.3, o.r * 0.3, 0, 6.28);
-        ctx.fillStyle = 'rgba(255,255,255,0.25)';
+        ctx.arc(-o.r * 0.28, -o.r * 0.28, o.r * 0.28, 0, 6.28);
+        ctx.fillStyle = 'rgba(255,255,255,0.3)';
         ctx.fill();
-
-        // Emoji on top
-        ctx.font = (o.r * 1.2) + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+        // emoji
+        ctx.font = Math.round(o.r * 1.1) + 'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(o.data.emoji, 0, 2);
@@ -336,8 +326,8 @@
       ctx.restore();
     }
 
-    // Slice trail
-    if (trail && trail.length > 1) {
+    // trail
+    if (trail.length > 1) {
       var now = performance.now();
       ctx.lineCap = 'round';
       for (var i = 1; i < trail.length; i++) {
@@ -358,18 +348,17 @@
     }
   }
 
-  /* ====== GAME FLOW ====== */
   function startGame() {
     score = 0;
     combo = 0;
     maxCombo = 0;
+    comboTime = 0;
     timeLeft = DURATION;
     objects = [];
     particles = [];
     trail = [];
     spawnAcc = 0;
     spawnRate = 1.0;
-    loop._comboTime = 0;
     running = true;
     lastFrame = performance.now();
 
@@ -379,6 +368,7 @@
   }
 
   function endGame() {
+    running = false;
     hud.classList.add('hidden');
     overScore.textContent = score;
     overCombo.textContent = maxCombo;
@@ -386,44 +376,41 @@
     submitScore();
   }
 
-  async function submitScore() {
+  function submitScore() {
     if (!playerName || score <= 0) {
       overStatus.textContent = playerName ? '' : '未输入昵称，分数未提交';
       return;
     }
     overStatus.textContent = '提交中...';
-    try {
-      var res = await fetch('/api/leaderboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: playerName, score: score, combo: maxCombo })
-      });
+    fetch('/api/leaderboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: playerName, score: score, combo: maxCombo })
+    }).then(function (res) {
       overStatus.textContent = res.ok ? '✓ 已提交到排行榜' : '提交失败';
-    } catch (e) {
+    }).catch(function () {
       overStatus.textContent = '网络错误，未提交';
-    }
+    });
   }
 
-  async function showRank() {
+  function showRank() {
     screenStart.classList.add('hidden');
     screenOver.classList.add('hidden');
     screenRank.classList.remove('hidden');
     rankList.innerHTML = '<p class="muted">加载中...</p>';
-    try {
-      var res = await fetch('/api/leaderboard');
-      var data = await res.json();
+    fetch('/api/leaderboard').then(function (r) { return r.json(); }).then(function (data) {
       if (!data.scores || data.scores.length === 0) {
         rankList.innerHTML = '<p class="muted">暂无记录</p>';
         return;
       }
       rankList.innerHTML = data.scores.map(function (e, i) {
         var cls = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : '';
-        var icon = ['🥇','🥈','🥉'][i] || (i + 1);
+        var icon = ['🥇', '🥈', '🥉'][i] || (i + 1);
         return '<div class="rank-row"><span class="rank-pos ' + cls + '">' + icon + '</span><span class="rank-name">' + esc(e.name) + '</span><span class="rank-score">' + e.score + '</span></div>';
       }).join('');
-    } catch (e) {
+    }).catch(function () {
       rankList.innerHTML = '<p class="muted">加载失败</p>';
-    }
+    });
   }
 
   function esc(s) {
@@ -433,7 +420,7 @@
   }
 
   /* ====== BUTTONS ====== */
-  document.getElementById('btn-start').addEventListener('click', function () {
+  document.getElementById('btn-start').onclick = function () {
     var name = inputName.value.trim();
     if (!name) {
       inputName.classList.add('shake');
@@ -444,22 +431,23 @@
     playerName = name;
     screenStart.classList.add('hidden');
     startGame();
-  });
+  };
 
-  document.getElementById('btn-restart').addEventListener('click', function () {
+  document.getElementById('btn-restart').onclick = function () {
     screenOver.classList.add('hidden');
     startGame();
-  });
+  };
 
-  document.getElementById('btn-rank').addEventListener('click', showRank);
-  document.getElementById('btn-rank2').addEventListener('click', showRank);
-  document.getElementById('btn-back').addEventListener('click', function () {
+  document.getElementById('btn-rank').onclick = showRank;
+  document.getElementById('btn-rank2').onclick = showRank;
+  document.getElementById('btn-back').onclick = function () {
     screenRank.classList.add('hidden');
-    if (running) return;
-    if (score !== undefined && !screenOver.classList.contains('hidden')) return;
     screenStart.classList.remove('hidden');
-  });
+  };
 
-  // Draw idle background
+  /* ====== INIT ====== */
+  resize();
+  window.addEventListener('resize', resize);
   render();
+
 })();

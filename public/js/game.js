@@ -175,7 +175,6 @@
 
   function onDown(e) {
     if (!running) return;
-    e.preventDefault();
     pointerDown = true;
     pointer = ptrPos(e);
     prevPointer = { x: pointer.x, y: pointer.y };
@@ -183,9 +182,7 @@
   }
 
   function onMove(e) {
-    if (!running) return;
-    e.preventDefault();
-    if (!pointerDown) return;
+    if (!running || !pointerDown) return;
     prevPointer = { x: pointer.x, y: pointer.y };
     pointer = ptrPos(e);
     trail.push({ x: pointer.x, y: pointer.y, t: performance.now() });
@@ -193,31 +190,38 @@
     checkHits();
   }
 
-  function onUp(e) {
-    if (!running) return;
-    e.preventDefault();
+  function onUp() {
     pointerDown = false;
     trail = [];
   }
 
-  // Block browser gestures (back-swipe, pull-to-refresh) but allow buttons/inputs
-  function shouldBlock(e) {
-    var tag = e.target.tagName;
-    if (tag === 'BUTTON' || tag === 'INPUT') return false;
-    if (e.target.classList && e.target.classList.contains('btn')) return false;
-    return true;
+  // Block ALL touch events globally to prevent browser gestures
+  function isInteractive(el) {
+    if (!el) return false;
+    var tag = el.tagName;
+    if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'LABEL') return true;
+    if (el.classList && el.classList.contains('btn')) return true;
+    if (el.closest && el.closest('button, input, .btn, .rank-list')) return true;
+    return false;
   }
-  document.addEventListener('touchstart', function (e) { if (shouldBlock(e)) e.preventDefault(); }, { passive: false });
-  document.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener('touchstart', function (e) {
+    if (!isInteractive(e.target)) e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('touchmove', function (e) {
+    if (!isInteractive(e.target)) e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('touchend', function (e) {
+    if (!isInteractive(e.target)) e.preventDefault();
+  }, { passive: false });
 
   canvas.addEventListener('mousedown', onDown);
   canvas.addEventListener('mousemove', onMove);
   canvas.addEventListener('mouseup', onUp);
   canvas.addEventListener('mouseleave', onUp);
-  canvas.addEventListener('touchstart', onDown, { passive: false });
-  canvas.addEventListener('touchmove', onMove, { passive: false });
-  canvas.addEventListener('touchend', onUp, { passive: false });
-  canvas.addEventListener('touchcancel', onUp, { passive: false });
+  canvas.addEventListener('touchstart', function (e) { onDown(e); }, { passive: false });
+  canvas.addEventListener('touchmove', function (e) { onMove(e); }, { passive: false });
+  canvas.addEventListener('touchend', function () { onUp(); }, { passive: false });
+  canvas.addEventListener('touchcancel', function () { onUp(); }, { passive: false });
 
   function checkHits() {
     var dx = pointer.x - prevPointer.x;

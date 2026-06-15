@@ -199,6 +199,16 @@
     trail = [];
   }
 
+  // Block browser gestures (back-swipe, pull-to-refresh) but allow buttons/inputs
+  function shouldBlock(e) {
+    var tag = e.target.tagName;
+    if (tag === 'BUTTON' || tag === 'INPUT') return false;
+    if (e.target.classList && e.target.classList.contains('btn')) return false;
+    return true;
+  }
+  document.addEventListener('touchstart', function (e) { if (shouldBlock(e)) e.preventDefault(); }, { passive: false });
+  document.addEventListener('touchmove', function (e) { e.preventDefault(); }, { passive: false });
+
   canvas.addEventListener('mousedown', onDown);
   canvas.addEventListener('mousemove', onMove);
   canvas.addEventListener('mouseup', onUp);

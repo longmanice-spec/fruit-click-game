@@ -3,15 +3,15 @@
 
   var DURATION = 60;
   var FRUITS = [
-    { emoji: '🍎', pts: 1, fill: '#e74c3c', stroke: '#c0392b' },
-    { emoji: '🍊', pts: 1, fill: '#e67e22', stroke: '#d35400' },
-    { emoji: '🍋', pts: 1, fill: '#f1c40f', stroke: '#d4ac0f' },
-    { emoji: '🍇', pts: 2, fill: '#9b59b6', stroke: '#7d3c98' },
-    { emoji: '🍉', pts: 2, fill: '#27ae60', stroke: '#1e8449' },
-    { emoji: '🍑', pts: 2, fill: '#fd79a8', stroke: '#e84393' },
-    { emoji: '🍍', pts: 3, fill: '#fdcb6e', stroke: '#e1b12c' },
-    { emoji: '🥝', pts: 3, fill: '#00b894', stroke: '#00a87d' },
-    { emoji: '🍒', pts: 3, fill: '#d63031', stroke: '#b71c1c' },
+    { emoji: '🍬', pts: 1, fill: '#ff6b6b', stroke: '#e74c3c' },
+    { emoji: '🍭', pts: 1, fill: '#a29bfe', stroke: '#6c5ce7' },
+    { emoji: '🍫', pts: 1, fill: '#b47040', stroke: '#8b5e34' },
+    { emoji: '🍩', pts: 2, fill: '#fd79a8', stroke: '#e84393' },
+    { emoji: '🧁', pts: 2, fill: '#fdcb6e', stroke: '#e1b12c' },
+    { emoji: '🍪', pts: 2, fill: '#e67e22', stroke: '#d35400' },
+    { emoji: '🎂', pts: 3, fill: '#ff7675', stroke: '#d63031' },
+    { emoji: '🍡', pts: 3, fill: '#55efc4', stroke: '#00b894' },
+    { emoji: '🍮', pts: 3, fill: '#ffeaa7', stroke: '#dab600' },
   ];
 
   var canvas = document.getElementById('game-canvas');

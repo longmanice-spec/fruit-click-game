@@ -1,0 +1,213 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  overflow: hidden;
+  background: #1a0a2e;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#game-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+#ui-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#score-display, #combo-display, #lives-display {
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  padding: 8px 16px;
+  color: white;
+  text-align: center;
+  backdrop-filter: blur(4px);
+}
+
+#score-display span:first-child,
+#combo-display span:first-child {
+  display: block;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+#combo-display {
+  background: rgba(255, 165, 0, 0.8);
+  animation: pulse 0.3s ease-in-out;
+}
+
+.label {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+#lives-display {
+  font-size: 20px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 5, 30, 0.92);
+  z-index: 100;
+  color: white;
+  gap: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.screen h1 {
+  font-size: 42px;
+  margin-bottom: 8px;
+  text-shadow: 0 0 20px rgba(255, 165, 0, 0.5);
+}
+
+.screen p {
+  font-size: 18px;
+  opacity: 0.8;
+}
+
+.screen .warning {
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+.btn {
+  padding: 14px 36px;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: linear-gradient(135deg, #ff6b35, #ff3366);
+  color: white;
+  margin-top: 8px;
+  pointer-events: auto;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 20px rgba(255, 100, 50, 0.4);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+#player-name {
+  padding: 12px 20px;
+  font-size: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  text-align: center;
+  outline: none;
+  width: 240px;
+}
+
+#player-name::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+#player-name:focus {
+  border-color: #ff6b35;
+}
+
+#leaderboard-list {
+  width: 90%;
+  max-width: 400px;
+  max-height: 50vh;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.lb-entry {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  gap: 12px;
+}
+
+.lb-entry:last-child {
+  border-bottom: none;
+}
+
+.lb-rank {
+  font-size: 20px;
+  font-weight: bold;
+  width: 36px;
+  text-align: center;
+}
+
+.lb-rank.gold { color: #ffd700; }
+.lb-rank.silver { color: #c0c0c0; }
+.lb-rank.bronze { color: #cd7f32; }
+
+.lb-name {
+  flex: 1;
+  font-size: 16px;
+}
+
+.lb-score {
+  font-size: 18px;
+  font-weight: bold;
+  color: #ff6b35;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@media (max-width: 600px) {
+  .screen h1 { font-size: 32px; }
+  #ui-overlay { padding: 10px 14px; }
+  #score-display span:first-child { font-size: 22px; }
+}

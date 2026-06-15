@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>切水果大作战</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍉</text></svg>">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+
+    <div id="ui-overlay">
+      <div id="score-display">
+        <span id="score">0</span>
+        <span class="label">分数</span>
+      </div>
+      <div id="combo-display" class="hidden">
+        <span id="combo-count">0</span>
+        <span class="label">连击!</span>
+      </div>
+      <div id="lives-display">
+        <span id="lives">❤️❤️❤️</span>
+      </div>
+    </div>
+
+    <div id="start-screen" class="screen">
+      <h1>🍉 切水果大作战</h1>
+      <p>滑动鼠标或手指切开水果</p>
+      <p class="warning">⚠️ 小心炸弹！</p>
+      <button id="start-btn" class="btn">开始游戏</button>
+      <button id="leaderboard-btn" class="btn btn-secondary">排行榜 🏆</button>
+    </div>
+
+    <div id="gameover-screen" class="screen hidden">
+      <h1>游戏结束</h1>
+      <p>最终得分: <span id="final-score">0</span></p>
+      <p>最高连击: <span id="final-combo">0</span></p>
+      <div id="submit-score" class="hidden">
+        <input type="text" id="player-name" placeholder="输入你的名字" maxlength="12">
+        <button id="submit-btn" class="btn">提交分数</button>
+      </div>
+      <button id="restart-btn" class="btn">再来一局</button>
+      <button id="gameover-leaderboard-btn" class="btn btn-secondary">排行榜 🏆</button>
+    </div>
+
+    <div id="leaderboard-screen" class="screen hidden">
+      <h1>🏆 排行榜</h1>
+      <div id="leaderboard-list">
+        <p>加载中...</p>
+      </div>
+      <button id="back-btn" class="btn">返回</button>
+    </div>
+  </div>
+
+  <script src="/js/game.js"></script>
+  <script src="/js/ui.js"></script>
+</body>
+</html>

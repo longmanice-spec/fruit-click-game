@@ -14,6 +14,115 @@
     { emoji: '🍮', pts: 3, fill: '#ffeaa7', stroke: '#dab600' },
   ];
 
+  /* ====== SOUND ====== */
+  var audioCtx = null;
+  function ensureAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function playSlice(comboN) {
+    try {
+      ensureAudio();
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      // pitch rises with combo
+      osc.frequency.value = 600 + Math.min(comboN, 10) * 80;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.15);
+    } catch (e) {}
+  }
+
+  function playBomb() {
+    try {
+      ensureAudio();
+      // low rumble
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = 80;
+      osc.type = 'sawtooth';
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.4);
+      // noise burst
+      var buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.2, audioCtx.sampleRate);
+      var data = buf.getChannelData(0);
+      for (var i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
+      var noise = audioCtx.createBufferSource();
+      var ng = audioCtx.createGain();
+      noise.buffer = buf;
+      noise.connect(ng);
+      ng.connect(audioCtx.destination);
+      ng.gain.setValueAtTime(0.25, audioCtx.currentTime);
+      ng.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+      noise.start(audioCtx.currentTime);
+    } catch (e) {}
+  }
+
+  function playGameOver() {
+    try {
+      ensureAudio();
+      var notes = [523, 440, 349, 262];
+      notes.forEach(function (freq, i) {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'triangle';
+        var t = audioCtx.currentTime + i * 0.2;
+        gain.gain.setValueAtTime(0.15, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+        osc.start(t);
+        osc.stop(t + 0.25);
+      });
+    } catch (e) {}
+  }
+
+  function playStart() {
+    try {
+      ensureAudio();
+      var notes = [262, 330, 392, 523];
+      notes.forEach(function (freq, i) {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        var t = audioCtx.currentTime + i * 0.1;
+        gain.gain.setValueAtTime(0.12, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+        osc.start(t);
+        osc.stop(t + 0.15);
+      });
+    } catch (e) {}
+  }
+
+  function playTick() {
+    try {
+      ensureAudio();
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = 1000;
+      osc.type = 'square';
+      gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.06);
+    } catch (e) {}
+  }
+
   var canvas = document.getElementById('game-canvas');
   var ctx = canvas.getContext('2d');
 
@@ -117,6 +226,7 @@
           comboTime = 0;
           spawnBurst(o.x, o.y, '#ff4444', 10);
           spawnBurst(o.x, o.y, '#ff8800', 6);
+          playBomb();
         } else {
           var mul = 1 + Math.floor(combo / 3);
           score += o.data.pts * mul;
@@ -124,6 +234,7 @@
           comboTime = 0;
           if (combo > maxCombo) maxCombo = combo;
           spawnBurst(o.x, o.y, o.data.fill, 8);
+          playSlice(combo);
         }
         updateHud();
       }
@@ -189,7 +300,12 @@
     var dt = Math.min(now - lastFrame, 40) / 1000;
     lastFrame = now;
 
+    var prevSec = Math.ceil(timeLeft);
     timeLeft -= dt;
+    var curSec = Math.ceil(timeLeft);
+    if (curSec !== prevSec && curSec <= 5 && curSec > 0) {
+      playTick();
+    }
     if (timeLeft <= 0) {
       timeLeft = 0;
       running = false;
@@ -373,6 +489,7 @@
     overScore.textContent = score;
     overCombo.textContent = maxCombo;
     screenOver.classList.remove('hidden');
+    playGameOver();
     submitScore();
   }
 
@@ -430,6 +547,7 @@
     }
     playerName = name;
     screenStart.classList.add('hidden');
+    playStart();
     startGame();
   };
 

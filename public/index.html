@@ -5,8 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png">
   <title>切水果大作战</title>
-  <link rel="stylesheet" href="/css/style.css?v=13">
+  <link rel="stylesheet" href="/css/style.css?v=14">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍉</text></svg>">
 </head>
 <body>
@@ -35,6 +38,7 @@
       <input type="text" id="input-name" placeholder="输入你的昵称" maxlength="12" autocomplete="off">
       <button id="btn-start" class="btn btn-primary">开始游戏</button>
       <button id="btn-rank" class="btn btn-ghost">🏆 排行榜</button>
+      <p class="pwa-tip" id="pwa-tip">📱 点击浏览器「分享 → 添加到主屏幕」可全屏游戏，不会误触退出</p>
     </div>
 
     <div id="screen-over" class="screen hidden">
@@ -58,6 +62,7 @@
     </div>
   </div>
 
-  <script src="/js/game.js?v=13"></script>
+  <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+  <script src="/js/game.js?v=14"></script>
 </body>
 </html>

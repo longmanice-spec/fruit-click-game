@@ -663,4 +663,10 @@
   window.addEventListener('resize', resize);
   render();
 
+  // Hide PWA tip if already installed
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+    var tip = document.getElementById('pwa-tip');
+    if (tip) tip.style.display = 'none';
+  }
+
 })();

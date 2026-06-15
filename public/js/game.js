@@ -271,8 +271,10 @@
     }
   }
 
+  var EDGE = 30;
+
   function spawnOne() {
-    var margin = 50;
+    var margin = EDGE + 30;
     var x = margin + Math.random() * (W - margin * 2);
     var isBomb = Math.random() < 0.13;
     var vy = -(H * 0.018 + Math.random() * H * 0.007);
@@ -366,6 +368,9 @@
       o.vy += o.grav;
       o.y += o.vy;
       o.rot += o.rotV;
+      // bounce off edge walls
+      if (o.x < EDGE + o.r) { o.x = EDGE + o.r; o.vx = Math.abs(o.vx) * 0.6; }
+      if (o.x > W - EDGE - o.r) { o.x = W - EDGE - o.r; o.vx = -Math.abs(o.vx) * 0.6; }
       if (o.y > H + 80) objects.splice(i, 1);
     }
 
@@ -394,6 +399,18 @@
     bg.addColorStop(1, '#0f3460');
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
+
+    // edge safe zones
+    var edgeGrad = ctx.createLinearGradient(0, 0, EDGE, 0);
+    edgeGrad.addColorStop(0, 'rgba(255,255,255,0.06)');
+    edgeGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = edgeGrad;
+    ctx.fillRect(0, 0, EDGE, H);
+    var edgeGrad2 = ctx.createLinearGradient(W, 0, W - EDGE, 0);
+    edgeGrad2.addColorStop(0, 'rgba(255,255,255,0.06)');
+    edgeGrad2.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = edgeGrad2;
+    ctx.fillRect(W - EDGE, 0, EDGE, H);
 
     // particles
     for (var i = 0; i < particles.length; i++) {

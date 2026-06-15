@@ -675,6 +675,19 @@
   // Submit any pending score from a previous interrupted session
   submitPending();
 
+  /* ====== PREVENT SWIPE-BACK (WeChat / in-app browsers) ====== */
+  function pushFakeHistory() {
+    window.history.pushState({ fruit: true }, '', window.location.href);
+  }
+  // Seed 3 entries so the first few swipe-backs are absorbed
+  pushFakeHistory();
+  pushFakeHistory();
+  pushFakeHistory();
+  window.addEventListener('popstate', function () {
+    // User swiped back — push another fake entry to stay on this page
+    pushFakeHistory();
+  });
+
   /* ====== INIT ====== */
   resize();
   window.addEventListener('resize', resize);

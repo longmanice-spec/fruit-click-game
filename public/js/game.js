@@ -147,23 +147,7 @@
   var score = 0, combo = 0, maxCombo = 0, timeLeft = DURATION;
   var objects = [];
   var particles = [];
-  var floatTexts = [];
   var trail = [];
-
-  var GOOD_WORDS = ['加油💪', '不错👍', '厉害🔥', '漂亮✨', '爱你❤️', '你真棒🌟', '好耶🎉', '完美💯', '太强了😎', '继续🚀'];
-  var COMBO_WORDS = ['连击🔥🔥', '超神⚡', '无敌💥', '炸裂🌈', '起飞✈️'];
-  var BAD_WORDS = ['糟糕💔', '小心⚠️', '哎呀😱', '呜呜😢', '完蛋💣', '别碰😵'];
-
-  function spawnFloatText(x, y, text, color) {
-    floatTexts.push({
-      x: x,
-      y: y,
-      text: text,
-      color: color,
-      life: 1,
-      scale: 0
-    });
-  }
   var spawnAcc = 0, spawnRate = 1.0;
   var lastFrame = 0;
   var comboTime = 0;
@@ -243,7 +227,6 @@
           spawnBurst(o.x, o.y, '#ff4444', 10);
           spawnBurst(o.x, o.y, '#ff8800', 6);
           playBomb();
-          spawnFloatText(o.x, o.y, BAD_WORDS[Math.floor(Math.random() * BAD_WORDS.length)], '#ff4444');
         } else {
           var mul = 1 + Math.floor(combo / 3);
           score += o.data.pts * mul;
@@ -252,11 +235,6 @@
           if (combo > maxCombo) maxCombo = combo;
           spawnBurst(o.x, o.y, o.data.fill, 8);
           playSlice(combo);
-          if (combo >= 5) {
-            spawnFloatText(o.x, o.y, COMBO_WORDS[Math.floor(Math.random() * COMBO_WORDS.length)], '#ffdd00');
-          } else if (combo >= 2 || Math.random() < 0.35) {
-            spawnFloatText(o.x, o.y, GOOD_WORDS[Math.floor(Math.random() * GOOD_WORDS.length)], '#fff');
-          }
         }
         updateHud();
       }
@@ -379,14 +357,7 @@
       if (p.life <= 0) particles.splice(i, 1);
     }
 
-    // update float texts
-    for (var i = floatTexts.length - 1; i >= 0; i--) {
-      var ft = floatTexts[i];
-      ft.y -= 1.5;
-      ft.life -= 0.018;
-      if (ft.scale < 1) ft.scale = Math.min(1, ft.scale + 0.12);
-      if (ft.life <= 0) floatTexts.splice(i, 1);
-    }
+
 
     updateHud();
     render();
@@ -473,25 +444,6 @@
       ctx.restore();
     }
 
-    // float texts
-    for (var i = 0; i < floatTexts.length; i++) {
-      var ft = floatTexts[i];
-      ctx.save();
-      ctx.globalAlpha = Math.min(1, ft.life * 2);
-      ctx.translate(ft.x, ft.y);
-      var s = ft.scale;
-      ctx.scale(s, s);
-      ctx.font = 'bold 22px -apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-      ctx.lineWidth = 3;
-      ctx.strokeText(ft.text, 0, 0);
-      ctx.fillStyle = ft.color;
-      ctx.fillText(ft.text, 0, 0);
-      ctx.restore();
-    }
-
     // trail
     if (trail.length > 1) {
       var now = performance.now();
@@ -522,7 +474,6 @@
     timeLeft = DURATION;
     objects = [];
     particles = [];
-    floatTexts = [];
     trail = [];
     spawnAcc = 0;
     spawnRate = 1.0;

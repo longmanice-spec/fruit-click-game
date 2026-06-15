@@ -29,40 +29,23 @@ export default async function handler(req, res) {
 async function getLeaderboard(req, res) {
   const limit = Math.min(parseInt(req.query.limit) || 20, MAX_ENTRIES);
 
-  const entries = await redis.zrange(KEY, 0, limit - 1, { rev: true, withScores: true });
+  // Use ZREVRANGE to get top scores (highest first)
+  // Then get scores separately with ZREVRANGEBYSCORE or zscore
+  const members = await redis.zrange(KEY, 0, limit - 1, { rev: true });
 
+  if (!members || members.length === 0) {
+    return res.status(200).json({ scores: [] });
+  }
+
+  // Get scores for each member
   const scores = [];
-
-  if (Array.isArray(entries)) {
-    for (const entry of entries) {
-      if (entry && typeof entry === 'object' && 'score' in entry) {
-        const member = entry.member || entry.value;
-        const sc = Number(entry.score);
-        try {
-          const data = typeof member === 'string' ? JSON.parse(member) : member;
-          scores.push({ name: data.name || 'Unknown', score: sc, combo: data.combo || 0 });
-        } catch {
-          scores.push({ name: String(member), score: sc, combo: 0 });
-        }
-      } else if (typeof entry === 'string' || typeof entry === 'number') {
-        // Flat format fallback: [member, score, member, score, ...]
-        // Re-fetch without withScores parsing
-        break;
-      }
-    }
-
-    // Flat array fallback
-    if (scores.length === 0 && entries.length > 0 && typeof entries[0] !== 'object') {
-      for (let i = 0; i < entries.length - 1; i += 2) {
-        const raw = entries[i];
-        const sc = Number(entries[i + 1]);
-        try {
-          const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
-          scores.push({ name: data.name || 'Unknown', score: sc, combo: data.combo || 0 });
-        } catch {
-          scores.push({ name: String(raw), score: sc, combo: 0 });
-        }
-      }
+  for (const member of members) {
+    const sc = await redis.zscore(KEY, member);
+    try {
+      const data = typeof member === 'string' ? JSON.parse(member) : member;
+      scores.push({ name: data.name || 'Unknown', score: Number(sc), combo: data.combo || 0 });
+    } catch {
+      scores.push({ name: String(member), score: Number(sc), combo: 0 });
     }
   }
 

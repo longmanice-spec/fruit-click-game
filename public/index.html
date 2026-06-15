@@ -20,27 +20,29 @@
         <span id="combo-count">0</span>
         <span class="label">连击!</span>
       </div>
-      <div id="lives-display">
-        <span id="lives">❤️❤️❤️</span>
+      <div id="timer-display">
+        <span id="timer">60</span>
+        <span class="label">秒</span>
       </div>
     </div>
 
     <div id="start-screen" class="screen">
       <h1>🍉 切水果大作战</h1>
-      <p>滑动鼠标或手指切开水果</p>
-      <p class="warning">⚠️ 小心炸弹！</p>
+      <p>滑动手指切开水果，限时60秒！</p>
+      <p class="warning">⚠️ 小心炸弹！切到扣10分</p>
+      <input type="text" id="player-name" placeholder="输入你的名字" maxlength="12">
       <button id="start-btn" class="btn">开始游戏</button>
       <button id="leaderboard-btn" class="btn btn-secondary">排行榜 🏆</button>
     </div>
 
     <div id="gameover-screen" class="screen hidden">
-      <h1>游戏结束</h1>
-      <p>最终得分: <span id="final-score">0</span></p>
-      <p>最高连击: <span id="final-combo">0</span></p>
-      <div id="submit-score" class="hidden">
-        <input type="text" id="player-name" placeholder="输入你的名字" maxlength="12">
-        <button id="submit-btn" class="btn">提交分数</button>
+      <h1>⏰ 时间到！</h1>
+      <div class="result-card">
+        <p class="result-score"><span id="final-score">0</span></p>
+        <p class="result-label">最终得分</p>
+        <p class="result-combo">最高连击: <span id="final-combo">0</span></p>
       </div>
+      <p id="submit-status">提交中...</p>
       <button id="restart-btn" class="btn">再来一局</button>
       <button id="gameover-leaderboard-btn" class="btn btn-secondary">排行榜 🏆</button>
     </div>

@@ -9,16 +9,14 @@ const leaderboardScreen = document.getElementById('leaderboard-screen');
 const scoreEl = document.getElementById('score');
 const comboDisplay = document.getElementById('combo-display');
 const comboCountEl = document.getElementById('combo-count');
-const livesEl = document.getElementById('lives');
+const timerEl = document.getElementById('timer');
+const timerDisplay = document.getElementById('timer-display');
 const finalScoreEl = document.getElementById('final-score');
 const finalComboEl = document.getElementById('final-combo');
-const submitSection = document.getElementById('submit-score');
 const playerNameInput = document.getElementById('player-name');
-const leaderboardList = document.getElementById('leaderboard-list');
+const submitStatus = document.getElementById('submit-status');
 
-function updateLives(lives) {
-  livesEl.textContent = '❤️'.repeat(Math.max(0, lives)) + '🖤'.repeat(Math.max(0, 3 - lives));
-}
+let playerName = '';
 
 game.onScoreUpdate = (score, combo) => {
   scoreEl.textContent = score;
@@ -30,71 +28,74 @@ game.onScoreUpdate = (score, combo) => {
   }
 };
 
-game.onLifeLost = (lives) => {
-  updateLives(lives);
+game.onTimerUpdate = (timeLeft) => {
+  timerEl.textContent = Math.ceil(timeLeft);
+  if (timeLeft <= 10) {
+    timerDisplay.classList.add('warning');
+  } else {
+    timerDisplay.classList.remove('warning');
+  }
 };
 
-game.onGameOver = (score, maxCombo) => {
+game.onGameOver = async (score, maxCombo) => {
   gameoverScreen.classList.remove('hidden');
   finalScoreEl.textContent = score;
   finalComboEl.textContent = maxCombo;
-  if (score > 0) {
-    submitSection.classList.remove('hidden');
+
+  if (score > 0 && playerName) {
+    submitStatus.textContent = '提交分数中...';
+    try {
+      const res = await fetch(`${API_BASE}/leaderboard`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: playerName, score, combo: maxCombo }),
+      });
+      if (res.ok) {
+        submitStatus.textContent = '✓ 分数已提交';
+      } else {
+        submitStatus.textContent = '提交失败，请检查网络';
+      }
+    } catch {
+      submitStatus.textContent = '网络错误，分数未提交';
+    }
+  } else if (!playerName) {
+    submitStatus.textContent = '未输入名字，分数未提交';
+  } else {
+    submitStatus.textContent = '';
   }
 };
 
 document.getElementById('start-btn').addEventListener('click', () => {
+  const name = playerNameInput.value.trim();
+  if (!name) {
+    playerNameInput.classList.add('error');
+    playerNameInput.focus();
+    setTimeout(() => playerNameInput.classList.remove('error'), 500);
+    return;
+  }
+  playerName = name;
   startScreen.classList.add('hidden');
-  updateLives(3);
   scoreEl.textContent = '0';
+  timerEl.textContent = '60';
+  timerDisplay.classList.remove('warning');
   comboDisplay.classList.add('hidden');
   game.start();
 });
 
 document.getElementById('restart-btn').addEventListener('click', () => {
   gameoverScreen.classList.add('hidden');
-  submitSection.classList.add('hidden');
-  updateLives(3);
   scoreEl.textContent = '0';
+  timerEl.textContent = '60';
+  timerDisplay.classList.remove('warning');
   comboDisplay.classList.add('hidden');
   game.start();
-});
-
-document.getElementById('submit-btn').addEventListener('click', async () => {
-  const name = playerNameInput.value.trim();
-  if (!name) {
-    playerNameInput.style.borderColor = '#ff3b30';
-    return;
-  }
-  playerNameInput.style.borderColor = '';
-
-  const btn = document.getElementById('submit-btn');
-  btn.textContent = '提交中...';
-  btn.disabled = true;
-
-  try {
-    const res = await fetch(`${API_BASE}/leaderboard`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, score: game.score, combo: game.maxCombo }),
-    });
-    if (res.ok) {
-      btn.textContent = '已提交 ✓';
-      submitSection.querySelector('input').disabled = true;
-    } else {
-      btn.textContent = '提交失败';
-      btn.disabled = false;
-    }
-  } catch {
-    btn.textContent = '网络错误';
-    btn.disabled = false;
-  }
 });
 
 async function showLeaderboard() {
   startScreen.classList.add('hidden');
   gameoverScreen.classList.add('hidden');
   leaderboardScreen.classList.remove('hidden');
+  const leaderboardList = document.getElementById('leaderboard-list');
   leaderboardList.innerHTML = '<p style="text-align:center;opacity:0.6">加载中...</p>';
 
   try {
@@ -102,7 +103,7 @@ async function showLeaderboard() {
     const data = await res.json();
 
     if (!data.scores || data.scores.length === 0) {
-      leaderboardList.innerHTML = '<p style="text-align:center;opacity:0.6">暂无记录，快来创造第一个记录吧！</p>';
+      leaderboardList.innerHTML = '<p style="text-align:center;opacity:0.6">暂无记录，快来创造第一个！</p>';
       return;
     }
 

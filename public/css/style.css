@@ -42,7 +42,7 @@ body {
   z-index: 10;
 }
 
-#score-display, #combo-display, #lives-display {
+#score-display, #combo-display, #timer-display {
   background: rgba(0, 0, 0, 0.6);
   border-radius: 12px;
   padding: 8px 16px;
@@ -52,10 +52,20 @@ body {
 }
 
 #score-display span:first-child,
-#combo-display span:first-child {
+#combo-display span:first-child,
+#timer-display span:first-child {
   display: block;
   font-size: 28px;
   font-weight: bold;
+}
+
+#timer-display {
+  background: rgba(255, 59, 48, 0.7);
+}
+
+#timer-display.warning {
+  animation: pulse 0.5s ease-in-out infinite;
+  background: rgba(255, 0, 0, 0.85);
 }
 
 #combo-display {
@@ -66,10 +76,6 @@ body {
 .label {
   font-size: 12px;
   opacity: 0.8;
-}
-
-#lives-display {
-  font-size: 20px;
 }
 
 .hidden {
@@ -107,6 +113,38 @@ body {
 .screen .warning {
   color: #ff6b6b;
   font-weight: bold;
+}
+
+.result-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 24px 40px;
+  text-align: center;
+  margin: 8px 0;
+}
+
+.result-score {
+  font-size: 56px !important;
+  font-weight: bold;
+  color: #ff6b35;
+  opacity: 1 !important;
+}
+
+.result-label {
+  font-size: 14px !important;
+  opacity: 0.6 !important;
+  margin-top: 4px;
+}
+
+.result-combo {
+  margin-top: 12px;
+  font-size: 16px !important;
+  color: #ffcc00;
+}
+
+#submit-status {
+  font-size: 14px !important;
+  opacity: 0.6 !important;
 }
 
 .btn {
@@ -154,6 +192,11 @@ body {
 
 #player-name:focus {
   border-color: #ff6b35;
+}
+
+#player-name.error {
+  border-color: #ff3b30;
+  animation: shake 0.3s;
 }
 
 #leaderboard-list {
@@ -206,8 +249,16 @@ body {
   100% { transform: scale(1); }
 }
 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
 @media (max-width: 600px) {
   .screen h1 { font-size: 32px; }
   #ui-overlay { padding: 10px 14px; }
-  #score-display span:first-child { font-size: 22px; }
+  #score-display span:first-child,
+  #timer-display span:first-child { font-size: 22px; }
+  .result-score { font-size: 44px !important; }
 }

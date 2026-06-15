@@ -1,16 +1,18 @@
 const FRUITS = [
-  { emoji: '🍎', points: 1, color: '#ff3b30' },
-  { emoji: '🍊', points: 1, color: '#ff9500' },
-  { emoji: '🍋', points: 1, color: '#ffcc00' },
-  { emoji: '🍇', points: 2, color: '#af52de' },
-  { emoji: '🍉', points: 2, color: '#34c759' },
-  { emoji: '🍑', points: 2, color: '#ff6b6b' },
-  { emoji: '🍍', points: 3, color: '#ffcc00' },
-  { emoji: '🥝', points: 3, color: '#30d158' },
-  { emoji: '🍒', points: 3, color: '#ff2d55' },
+  { emoji: '🍎', points: 1, color: '#ff3b30', name: 'apple' },
+  { emoji: '🍊', points: 1, color: '#ff9500', name: 'orange' },
+  { emoji: '🍋', points: 1, color: '#ffcc00', name: 'lemon' },
+  { emoji: '🍇', points: 2, color: '#af52de', name: 'grape' },
+  { emoji: '🍉', points: 2, color: '#34c759', name: 'watermelon' },
+  { emoji: '🍑', points: 2, color: '#ff6b6b', name: 'peach' },
+  { emoji: '🍍', points: 3, color: '#ffcc00', name: 'pineapple' },
+  { emoji: '🥝', points: 3, color: '#30d158', name: 'kiwi' },
+  { emoji: '🍒', points: 3, color: '#ff2d55', name: 'cherry' },
 ];
 
-const BOMB = { emoji: '💣', color: '#333' };
+const BOMB = { emoji: '💣', color: '#333', name: 'bomb' };
+
+const GAME_DURATION = 60;
 
 class Game {
   constructor(canvas) {
@@ -20,7 +22,7 @@ class Game {
 
     this.state = 'idle';
     this.score = 0;
-    this.lives = 3;
+    this.timeLeft = GAME_DURATION;
     this.combo = 0;
     this.maxCombo = 0;
     this.comboTimer = 0;
@@ -29,7 +31,7 @@ class Game {
     this.particles = [];
     this.splashes = [];
     this.spawnTimer = 0;
-    this.spawnInterval = 1200;
+    this.spawnInterval = 1000;
     this.difficulty = 1;
     this.elapsed = 0;
 
@@ -45,16 +47,20 @@ class Game {
   }
 
   resize() {
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
-    this.width = this.canvas.width;
-    this.height = this.canvas.height;
+    const dpr = window.devicePixelRatio || 1;
+    this.canvas.width = window.innerWidth * dpr;
+    this.canvas.height = window.innerHeight * dpr;
+    this.canvas.style.width = window.innerWidth + 'px';
+    this.canvas.style.height = window.innerHeight + 'px';
+    this.ctx.scale(dpr, dpr);
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
   }
 
   start() {
     this.state = 'playing';
     this.score = 0;
-    this.lives = 3;
+    this.timeLeft = GAME_DURATION;
     this.combo = 0;
     this.maxCombo = 0;
     this.comboTimer = 0;
@@ -63,7 +69,7 @@ class Game {
     this.particles = [];
     this.splashes = [];
     this.spawnTimer = 0;
-    this.spawnInterval = 1200;
+    this.spawnInterval = 1000;
     this.difficulty = 1;
     this.elapsed = 0;
     this._lastTime = performance.now();
@@ -125,7 +131,7 @@ class Game {
       const obj = this.objects[i];
       if (obj.sliced) continue;
       const dist = Math.hypot(mx - obj.x, my - obj.y);
-      if (dist < obj.radius + 10) {
+      if (dist < obj.radius + 15) {
         obj.sliced = true;
         if (obj.isBomb) {
           this._hitBomb(obj);
@@ -150,30 +156,21 @@ class Game {
   }
 
   _hitBomb(obj) {
-    this.lives--;
+    this.score = Math.max(0, this.score - 10);
     this.combo = 0;
     this._spawnParticles(obj.x, obj.y, '#ff0000', 12);
-    this.canvas.style.animation = 'none';
-    this.canvas.offsetHeight;
-    this.canvas.style.animation = '';
+    this._spawnParticles(obj.x, obj.y, '#ffaa00', 6);
 
-    if (typeof this.onLifeLost === 'function') {
-      this.onLifeLost(this.lives);
-    }
-
-    if (this.lives <= 0) {
-      this.stop();
-      if (typeof this.onGameOver === 'function') {
-        this.onGameOver(this.score, this.maxCombo);
-      }
+    if (typeof this.onScoreUpdate === 'function') {
+      this.onScoreUpdate(this.score, 0);
     }
   }
 
   _spawnObject() {
-    const isBomb = Math.random() < 0.15 + this.difficulty * 0.02;
-    const margin = 80;
+    const isBomb = Math.random() < 0.12 + this.difficulty * 0.015;
+    const margin = 60;
     const x = margin + Math.random() * (this.width - margin * 2);
-    const speedY = -(this.height * 0.012 + Math.random() * this.height * 0.006) * (1 + this.difficulty * 0.05);
+    const speedY = -(this.height * 0.013 + Math.random() * this.height * 0.005) * (1 + this.difficulty * 0.04);
     const speedX = (Math.random() - 0.5) * 4;
 
     const obj = {
@@ -182,7 +179,7 @@ class Game {
       vx: speedX,
       vy: speedY,
       gravity: 0.35 + this.difficulty * 0.01,
-      radius: 30 + Math.random() * 10,
+      radius: 32 + Math.random() * 8,
       rotation: Math.random() * Math.PI * 2,
       rotSpeed: (Math.random() - 0.5) * 0.1,
       sliced: false,
@@ -218,8 +215,21 @@ class Game {
     this._lastTime = time;
     this.elapsed += dt;
 
-    this.difficulty = 1 + Math.floor(this.elapsed / 15000);
-    this.spawnInterval = Math.max(400, 1200 - this.difficulty * 80);
+    this.timeLeft = Math.max(0, GAME_DURATION - this.elapsed / 1000);
+    if (typeof this.onTimerUpdate === 'function') {
+      this.onTimerUpdate(this.timeLeft);
+    }
+
+    if (this.timeLeft <= 0) {
+      this.stop();
+      if (typeof this.onGameOver === 'function') {
+        this.onGameOver(this.score, this.maxCombo);
+      }
+      return;
+    }
+
+    this.difficulty = 1 + Math.floor(this.elapsed / 12000);
+    this.spawnInterval = Math.max(350, 1000 - this.difficulty * 70);
 
     this.spawnTimer += dt;
     if (this.spawnTimer >= this.spawnInterval) {
@@ -251,19 +261,6 @@ class Game {
     for (let i = this.objects.length - 1; i >= 0; i--) {
       const obj = this.objects[i];
       if (obj.y > this.height + 100) {
-        if (!obj.sliced && !obj.isBomb) {
-          this.lives--;
-          if (typeof this.onLifeLost === 'function') {
-            this.onLifeLost(this.lives);
-          }
-          if (this.lives <= 0) {
-            this.stop();
-            if (typeof this.onGameOver === 'function') {
-              this.onGameOver(this.score, this.maxCombo);
-            }
-            return;
-          }
-        }
         this.objects.splice(i, 1);
       }
     }
@@ -315,13 +312,33 @@ class Game {
       ctx.save();
       ctx.translate(obj.x, obj.y);
       ctx.rotate(obj.rotation);
-      ctx.font = `${obj.radius * 1.5}px serif`;
+
+      const size = obj.radius * 1.6;
+      ctx.font = `${size}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      ctx.shadowColor = obj.isBomb ? 'rgba(255,0,0,0.5)' : 'rgba(255,255,255,0.3)';
-      ctx.shadowBlur = 15;
+      if (obj.isBomb) {
+        ctx.shadowColor = 'rgba(255, 0, 0, 0.6)';
+        ctx.shadowBlur = 20;
+      } else {
+        ctx.shadowColor = obj.data.color;
+        ctx.shadowBlur = 12;
+      }
+
       ctx.fillText(obj.data.emoji, 0, 0);
+
+      if (!obj.isBomb) {
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(0, 0, obj.radius + 4, 0, Math.PI * 2);
+        ctx.strokeStyle = obj.data.color;
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.4;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+
       ctx.restore();
     }
   }
@@ -366,13 +383,16 @@ class Game {
 
       ctx.globalAlpha = alpha;
       ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 3 * alpha + 1;
+      ctx.lineWidth = 4 * alpha + 1;
+      ctx.shadowColor = '#ffffff';
+      ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.moveTo(p0.x, p0.y);
       ctx.lineTo(p1.x, p1.y);
       ctx.stroke();
     }
 
+    ctx.shadowBlur = 0;
     ctx.globalAlpha = 1;
   }
 }

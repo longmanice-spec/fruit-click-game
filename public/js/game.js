@@ -575,6 +575,28 @@
     screenStart.classList.remove('hidden');
   };
 
+  /* ====== EXIT SAVE ====== */
+  function saveOnExit() {
+    if (!running || score <= 0 || !playerName) return;
+    running = false;
+    var data = JSON.stringify({ name: playerName, score: score, combo: maxCombo });
+    // sendBeacon works even when the page is closing
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/api/leaderboard', new Blob([data], { type: 'application/json' }));
+    } else {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/leaderboard', false);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.send(data);
+    }
+  }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden') saveOnExit();
+  });
+  window.addEventListener('pagehide', saveOnExit);
+  window.addEventListener('beforeunload', saveOnExit);
+
   /* ====== INIT ====== */
   resize();
   window.addEventListener('resize', resize);

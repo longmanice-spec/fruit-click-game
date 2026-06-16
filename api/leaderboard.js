@@ -6,7 +6,7 @@ const redis = new Redis({
 });
 
 const MAX_ENTRIES = 50;
-const VALID_GAMES = ['slash', 'match3'];
+const VALID_GAMES = ['slash', 'match3', 'tetris'];
 
 function getKey(game) {
   return 'fruit-slash:leaderboard:' + (VALID_GAMES.includes(game) ? game : 'slash');

@@ -1,7 +1,7 @@
 {
-  "name": "切水果大作战",
-  "short_name": "切水果",
-  "description": "限时60秒切水果挑战",
+  "name": "小游戏中心",
+  "short_name": "小游戏",
+  "description": "切水果、消消乐、俄罗斯方块、2048、Flappy Bird、贪吃蛇",
   "start_url": "/",
   "display": "fullscreen",
   "orientation": "portrait",

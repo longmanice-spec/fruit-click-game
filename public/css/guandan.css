@@ -1,0 +1,122 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  overflow: hidden; overscroll-behavior: none; touch-action: none;
+  -webkit-touch-callout: none;
+}
+body {
+  background: #1a5c2a;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+  user-select: none; -webkit-user-select: none;
+  position: fixed; width: 100%; height: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#game-area {
+  width: 100%; height: 100%; position: relative;
+}
+
+/* Player areas */
+.player-area {
+  position: absolute;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px;
+}
+.player-area.top { top: 8px; left: 50%; transform: translateX(-50%); }
+.player-area.left { left: 8px; top: 50%; transform: translateY(-50%); }
+.player-area.right { right: 8px; top: 50%; transform: translateY(-50%); }
+.player-name { font-size: 12px; color: rgba(255,255,255,0.7); }
+.card-count { font-size: 11px; color: #ffd700; }
+.played-cards {
+  display: flex; gap: 2px; flex-wrap: wrap; justify-content: center;
+  min-height: 36px; max-width: 200px;
+}
+
+#center-info {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  text-align: center; color: #fff;
+}
+#current-rank { font-size: 14px; opacity: 0.8; margin-bottom: 6px; }
+#current-rank span { font-size: 20px; font-weight: 700; color: #ffd700; }
+#turn-info { font-size: 16px; font-weight: 600; min-height: 24px; color: #fff; }
+
+/* My hand */
+#my-hand {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0;
+  max-width: 98vw;
+  overflow-x: visible;
+  padding: 4px 8px;
+}
+
+.hand-card {
+  width: 36px; height: 52px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.1s, margin-top 0.1s;
+  flex-shrink: 0;
+  margin-left: -12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  touch-action: manipulation;
+}
+.hand-card:first-child { margin-left: 0; }
+.hand-card.red { color: #d32f2f; }
+.hand-card.black { color: #222; }
+.hand-card.selected { margin-top: -14px; background: #fffde7; border-color: #ffd700; }
+.hand-card.wild { background: #e8f5e9; border-color: #4caf50; }
+
+.played-card {
+  width: 26px; height: 38px;
+  background: #fff; border: 1px solid #ddd; border-radius: 3px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+}
+.played-card.red { color: #d32f2f; }
+.played-card.black { color: #222; }
+
+/* Actions */
+#actions {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 12px;
+}
+.act-btn {
+  padding: 10px 20px; font-size: 15px; font-weight: 700;
+  border: none; border-radius: 20px; cursor: pointer; color: #fff;
+  touch-action: manipulation;
+}
+.act-btn { background: #e65100; }
+.act-btn.act-pass { background: #546e7a; }
+.act-btn.act-hint { background: #2e7d32; }
+.act-btn:active { transform: scale(0.95); }
+
+/* Screens */
+.screen {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(10, 50, 20, 0.95); z-index: 200; color: #fff; gap: 14px; padding: 24px;
+}
+.screen h1 { font-size: clamp(28px, 8vw, 44px); }
+.desc { font-size: 16px; opacity: 0.75; }
+.tip { font-size: 14px; color: #ffd700; font-weight: 600; }
+.btn {
+  padding: 13px 32px; font-size: 16px; font-weight: 700;
+  border: none; border-radius: 28px; cursor: pointer; color: #fff;
+  touch-action: manipulation;
+}
+.btn:active { transform: scale(0.95); }
+.btn-primary { background: linear-gradient(135deg, #e65100, #bf360c); min-width: 200px; }
+
+.back-link {
+  position: fixed; top: max(env(safe-area-inset-top,12px),12px); left: 12px;
+  color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px;
+  z-index: 300; padding: 6px 10px; touch-action: manipulation;
+}
+.hidden { display: none !important; }

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>掼蛋</title>
+  <link rel="stylesheet" href="/css/guandan.css?v=1">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>">
+</head>
+<body>
+  <a href="/" class="back-link">← 返回</a>
+
+  <div id="game-area">
+    <!-- Opponents area -->
+    <div id="top-player" class="player-area top">
+      <div class="player-name">对手B（AI）</div>
+      <div class="card-count" id="top-count">27张</div>
+      <div class="played-cards" id="top-played"></div>
+    </div>
+    <div id="left-player" class="player-area left">
+      <div class="player-name">对手A（AI）</div>
+      <div class="card-count" id="left-count">27张</div>
+      <div class="played-cards" id="left-played"></div>
+    </div>
+    <div id="right-player" class="player-area right">
+      <div class="player-name">队友（AI）</div>
+      <div class="card-count" id="right-count">27张</div>
+      <div class="played-cards" id="right-played"></div>
+    </div>
+
+    <!-- Center info -->
+    <div id="center-info">
+      <div id="current-rank">当前打: <span id="rank-display">2</span></div>
+      <div id="turn-info"></div>
+    </div>
+
+    <!-- Player hand -->
+    <div id="my-hand"></div>
+
+    <!-- Action buttons -->
+    <div id="actions" class="hidden">
+      <button class="act-btn" id="btn-play">出牌</button>
+      <button class="act-btn act-pass" id="btn-pass">不要</button>
+      <button class="act-btn act-hint" id="btn-hint">提示</button>
+    </div>
+  </div>
+
+  <div id="screen-start" class="screen">
+    <h1>🃏 掼蛋</h1>
+    <p class="desc">你 + AI队友 vs 两个AI对手</p>
+    <p class="tip">两副牌，升级规则，配合默契赢比赛！</p>
+    <button id="btn-start" class="btn btn-primary">开始游戏</button>
+  </div>
+
+  <div id="screen-result" class="screen hidden">
+    <h1 id="result-title">🎉 胜利！</h1>
+    <p id="result-desc"></p>
+    <button id="btn-again" class="btn btn-primary">再来一局</button>
+  </div>
+
+  <script src="/js/guandan.js?v=1"></script>
+</body>
+</html>

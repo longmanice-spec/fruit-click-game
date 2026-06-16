@@ -35,55 +35,40 @@ async function getLeaderboard(req, res) {
   const KEY = getKey(game);
   const limit = Math.min(parseInt(req.query.limit) || 20, MAX_ENTRIES);
 
-  // Use raw ZREVRANGE with WITHSCORES via pipeline for single round-trip
-  const result = await redis.zrange(KEY, 0, limit - 1, { rev: true, withScores: true });
+  let scores = await fetchScores(KEY, limit);
 
-  let scores = parseResult(result);
-
-  // Fallback to legacy key for slash
+  // Fallback to legacy key
   if (scores.length === 0 && game === 'slash') {
-    const legacy = await redis.zrange('fruit-slash:leaderboard', 0, limit - 1, { rev: true, withScores: true });
-    scores = parseResult(legacy);
+    scores = await fetchScores('fruit-slash:leaderboard', limit);
   }
 
   return res.status(200).json({ scores });
 }
 
-function parseResult(result) {
-  if (!result || !Array.isArray(result) || result.length === 0) return [];
+async function fetchScores(key, limit) {
+  // Get members without scores (single request)
+  const members = await redis.zrange(key, 0, limit - 1, { rev: true });
+  if (!members || members.length === 0) return [];
+
+  // Use pipeline to get all scores in one round-trip
+  const pipeline = redis.pipeline();
+  for (const m of members) {
+    pipeline.zscore(key, m);
+  }
+  const scoreResults = await pipeline.exec();
 
   const scores = [];
-
-  // Format 1: array of {member/value, score} objects
-  if (typeof result[0] === 'object' && result[0] !== null && ('score' in result[0] || 'member' in result[0])) {
-    for (const entry of result) {
-      const member = entry.member || entry.value || entry;
-      const sc = Number(entry.score || 0);
-      scores.push(parseMember(member, sc));
+  for (let i = 0; i < members.length; i++) {
+    const member = members[i];
+    const sc = Number(scoreResults[i] || 0);
+    try {
+      const data = typeof member === 'string' ? JSON.parse(member) : member;
+      scores.push({ name: data.name || 'Unknown', score: sc, combo: data.combo || 0 });
+    } catch {
+      scores.push({ name: String(member), score: sc, combo: 0 });
     }
-    return scores;
   }
-
-  // Format 2: flat array [member, score, member, score, ...]
-  if (typeof result[0] === 'string' || typeof result[0] === 'number') {
-    for (let i = 0; i < result.length - 1; i += 2) {
-      const member = result[i];
-      const sc = Number(result[i + 1]);
-      scores.push(parseMember(member, sc));
-    }
-    return scores;
-  }
-
   return scores;
-}
-
-function parseMember(member, sc) {
-  try {
-    const data = typeof member === 'string' ? JSON.parse(member) : member;
-    return { name: data.name || 'Unknown', score: sc, combo: data.combo || 0 };
-  } catch {
-    return { name: String(member), score: sc, combo: 0 };
-  }
 }
 
 async function submitScore(req, res) {

@@ -1,7 +1,8 @@
 (function () {
   'use strict';
 
-  var COLS = 8, ROWS = 8, DURATION = 60;
+  var DURATION = 60;
+  var COLS, ROWS;
   var FRUITS = [
     { emoji: '🍎', bg: '#e74c3c' },
     { emoji: '🍊', bg: '#e67e22' },
@@ -103,6 +104,19 @@
   var selected = null, animating = false;
   var timerInterval = null;
   var playerName = '';
+
+  function calcGrid() {
+    var w = window.innerWidth;
+    var h = window.innerHeight - 52;
+    // Calculate how many cols/rows fit with square cells
+    // cell size = w / cols = h / rows => rows = h * cols / w
+    COLS = 8;
+    ROWS = Math.round(h / (w / COLS));
+    if (ROWS < 8) ROWS = 8;
+    if (ROWS > 14) ROWS = 14;
+    boardEl.style.gridTemplateColumns = 'repeat(' + COLS + ', 1fr)';
+    boardEl.style.gridTemplateRows = 'repeat(' + ROWS + ', 1fr)';
+  }
 
   function randFruit() {
     return Math.floor(Math.random() * FRUITS.length);
@@ -298,6 +312,7 @@
   }, { passive: false });
 
   function startGame() {
+    calcGrid();
     score = 0;
     timeLeft = DURATION;
     selected = null;

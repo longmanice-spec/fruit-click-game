@@ -18,7 +18,7 @@
 
   var CELL, COLS, ROWS;
   var snake, dir, nextDir, food, score, running, interval;
-  var speed = 150;
+  var speed = 220;
   var playerName = '';
 
   // Sound
@@ -80,7 +80,7 @@
     dir = { x: 1, y: 0 };
     nextDir = { x: 1, y: 0 };
     score = 0;
-    speed = 150;
+    speed = 220;
     spawnFood();
     updateHud();
   }
@@ -111,7 +111,7 @@
       playEat();
       spawnFood();
       // Speed up slightly
-      if (speed > 70) speed -= 2;
+      if (speed > 100) speed -= 1;
     } else {
       snake.pop();
     }
@@ -122,7 +122,7 @@
 
   function die() {
     running = false;
-    clearInterval(interval);
+    clearTimeout(interval);
     playDie();
     setTimeout(endGame, 300);
   }
@@ -217,8 +217,13 @@
     hud.classList.remove('hidden');
     controlsEl.classList.remove('hidden');
     render();
-    clearInterval(interval);
-    interval = setInterval(function() { if (running) step(); }, speed);
+    clearTimeout(interval);
+    function tick() {
+      if (!running) return;
+      step();
+      interval = setTimeout(tick, speed);
+    }
+    interval = setTimeout(tick, speed);
   }
 
   function endGame() {

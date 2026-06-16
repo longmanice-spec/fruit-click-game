@@ -13,7 +13,7 @@
   var rankList=document.getElementById('rank-list');
 
   var bird,pipes,score,running,gameOver,frame;
-  var gravity=0.35,jump=-7,pipeSpeed=2.2,pipeGap=180,pipeWidth=52;
+  var gravity=0.22,jump=-5,pipeSpeed=1.8,pipeGap=200,pipeWidth=52;
   var playerName='';
 
   // Sound
@@ -35,7 +35,7 @@
   function init(){
     bird={x:W*0.25,y:H*0.4,vy:0,r:18};
     pipes=[];score=0;running=true;gameOver=false;frame=0;
-    pipeGap=Math.max(160,H*0.26);
+    pipeGap=Math.max(200,H*0.3);
   }
 
   function flap(){
@@ -56,7 +56,7 @@
     bird.y+=bird.vy;
 
     // Spawn pipes
-    if(frame%110===0)spawnPipe();
+    if(frame%130===0)spawnPipe();
 
     // Move pipes
     for(var i=pipes.length-1;i>=0;i--){

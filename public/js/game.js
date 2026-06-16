@@ -145,7 +145,6 @@
   var W = 0, H = 0, dpr = 1;
   var running = false;
   var score = 0, combo = 0, maxCombo = 0, timeLeft = DURATION;
-  var lastSyncScore = -1, syncTimer = 0;
   var objects = [];
   var particles = [];
   var trail = [];
@@ -331,13 +330,6 @@
       return;
     }
 
-    // auto sync score every 5s
-    syncTimer += dt;
-    if (syncTimer >= 5) {
-      syncTimer = 0;
-      syncScore();
-    }
-
     // combo decay
     if (combo > 0) {
       comboTime += dt;
@@ -517,8 +509,6 @@
     spawnAcc = 0;
     spawnRate = 1.0;
     exitSaved = false;
-    lastSyncScore = -1;
-    syncTimer = 0;
     running = true;
     lastFrame = performance.now();
 
@@ -536,16 +526,6 @@
     playGameOver();
     savePending();
     submitScore();
-  }
-
-  function syncScore() {
-    if (!playerName || score <= 0 || score === lastSyncScore) return;
-    lastSyncScore = score;
-    fetch('/api/leaderboard', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: playerName, score: score, combo: maxCombo, game: 'slash' })
-    }).catch(function () {});
   }
 
   function submitScore() {

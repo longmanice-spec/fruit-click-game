@@ -11,6 +11,80 @@
     { emoji: '🍒', bg: '#d63031' },
   ];
 
+  /* ====== SOUND ====== */
+  var audioCtx = null;
+  function ensureAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function playPop(chain) {
+    try {
+      ensureAudio();
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = 500 + chain * 120;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.12);
+    } catch (e) {}
+  }
+
+  function playSwap() {
+    try {
+      ensureAudio();
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = 300;
+      osc.type = 'triangle';
+      gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.08);
+    } catch (e) {}
+  }
+
+  function playBad() {
+    try {
+      ensureAudio();
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = 150;
+      osc.type = 'sawtooth';
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.2);
+    } catch (e) {}
+  }
+
+  function playEnd() {
+    try {
+      ensureAudio();
+      [523, 440, 349, 262].forEach(function (freq, i) {
+        var osc = audioCtx.createOscillator();
+        var gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'triangle';
+        var t = audioCtx.currentTime + i * 0.18;
+        gain.gain.setValueAtTime(0.12, t);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+        osc.start(t);
+        osc.stop(t + 0.22);
+      });
+    } catch (e) {}
+  }
+
   var board = [];
   var boardEl = document.getElementById('board');
   var hud = document.getElementById('hud');
@@ -29,7 +103,6 @@
   var selected = null, animating = false;
   var timerInterval = null;
   var playerName = '';
-  var lastSyncScore = -1;
 
   function randFruit() {
     return Math.floor(Math.random() * FRUITS.length);
@@ -160,6 +233,7 @@
       var pts = matches.length * 10 * chain;
       score += pts;
       hudScore.textContent = score;
+      playPop(chain);
       removeMatches(matches);
       renderBoard();
 
@@ -202,8 +276,10 @@
         swap(selected.r, selected.c, r, c);
         selected = null;
         renderBoard();
+        playBad();
       } else {
         selected = null;
+        playSwap();
         renderBoard();
         processChains();
       }
@@ -224,7 +300,6 @@
   function startGame() {
     score = 0;
     timeLeft = DURATION;
-    lastSyncScore = -1;
     selected = null;
     animating = false;
     running = true;
@@ -251,12 +326,6 @@
       hudTimer.textContent = Math.max(0, timeLeft);
       if (timeLeft <= 10) hudTimerWrap.classList.add('warn');
 
-      // Sync score every 5s
-      if (timeLeft % 5 === 0 && score !== lastSyncScore) {
-        lastSyncScore = score;
-        syncScore();
-      }
-
       if (timeLeft <= 0) {
         running = false;
         clearInterval(timerInterval);
@@ -270,16 +339,8 @@
     boardEl.classList.add('hidden');
     overScore.textContent = score;
     screenOver.classList.remove('hidden');
+    playEnd();
     submitScore();
-  }
-
-  function syncScore() {
-    if (!playerName || score <= 0) return;
-    fetch('/api/leaderboard', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: playerName, score: score, combo: 0, game: 'match3' })
-    }).catch(function () {});
   }
 
   function submitScore() {

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>2048</title>
+  <link rel="stylesheet" href="/css/2048.css?v=1">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔢</text></svg>">
+</head>
+<body>
+  <a href="/" class="back-link">← 返回</a>
+
+  <div id="hud" class="hidden">
+    <div class="hud-item">
+      <div class="hud-value" id="hud-score">0</div>
+      <div class="hud-label">分数</div>
+    </div>
+    <div class="hud-item">
+      <div class="hud-value" id="hud-best">0</div>
+      <div class="hud-label">最高</div>
+    </div>
+  </div>
+
+  <div id="board"></div>
+
+  <div id="screen-start" class="screen">
+    <h1>2048</h1>
+    <p class="desc">滑动合并相同数字，拼出2048！</p>
+    <p class="tip">每次滑动，所有方块移动，相同数字合并翻倍</p>
+    <input type="text" id="input-name" placeholder="输入你的昵称" maxlength="12" autocomplete="off">
+    <button id="btn-start" class="btn btn-primary">开始游戏</button>
+    <button id="btn-rank" class="btn btn-ghost">🏆 排行榜</button>
+  </div>
+
+  <div id="screen-over" class="screen hidden">
+    <h1>游戏结束</h1>
+    <div class="card">
+      <div class="card-score" id="over-score">0</div>
+      <div class="card-label">最终得分</div>
+    </div>
+    <div class="status" id="over-status"></div>
+    <button id="btn-restart" class="btn btn-primary">再来一局</button>
+    <button id="btn-rank2" class="btn btn-ghost">🏆 排行榜</button>
+  </div>
+
+  <div id="screen-rank" class="screen hidden">
+    <h1>🏆 排行榜</h1>
+    <div id="rank-list" class="rank-list"><p class="muted">加载中...</p></div>
+    <button id="btn-back" class="btn btn-ghost">← 返回</button>
+  </div>
+
+  <script src="/js/2048.js?v=1"></script>
+</body>
+</html>

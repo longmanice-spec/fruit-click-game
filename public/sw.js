@@ -1,5 +1,5 @@
-var CACHE = 'fruit-slash-v13';
-var ASSETS = ['/', '/css/style.css', '/js/game.js', '/icon-192.png', '/icon-512.png'];
+var CACHE = 'fruit-game-v17';
+var ASSETS = ['/', '/fruit-slash.html', '/match3.html', '/css/style.css', '/css/match3.css', '/js/game.js', '/js/match3.js', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(ASSETS); }));

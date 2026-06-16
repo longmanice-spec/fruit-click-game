@@ -5,8 +5,12 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-const KEY = 'fruit-slash:leaderboard';
 const MAX_ENTRIES = 50;
+const VALID_GAMES = ['slash', 'match3'];
+
+function getKey(game) {
+  return 'fruit-slash:leaderboard:' + (VALID_GAMES.includes(game) ? game : 'slash');
+}
 
 export default async function handler(req, res) {
   try {
@@ -27,17 +31,33 @@ export default async function handler(req, res) {
 }
 
 async function getLeaderboard(req, res) {
+  const game = req.query.game || 'slash';
+  const KEY = getKey(game);
   const limit = Math.min(parseInt(req.query.limit) || 20, MAX_ENTRIES);
 
-  // Use ZREVRANGE to get top scores (highest first)
-  // Then get scores separately with ZREVRANGEBYSCORE or zscore
   const members = await redis.zrange(KEY, 0, limit - 1, { rev: true });
 
   if (!members || members.length === 0) {
+    // Fallback: try legacy key for slash
+    if (game === 'slash') {
+      const legacyMembers = await redis.zrange('fruit-slash:leaderboard', 0, limit - 1, { rev: true });
+      if (legacyMembers && legacyMembers.length > 0) {
+        const scores = [];
+        for (const member of legacyMembers) {
+          const sc = await redis.zscore('fruit-slash:leaderboard', member);
+          try {
+            const data = typeof member === 'string' ? JSON.parse(member) : member;
+            scores.push({ name: data.name || 'Unknown', score: Number(sc), combo: data.combo || 0 });
+          } catch {
+            scores.push({ name: String(member), score: Number(sc), combo: 0 });
+          }
+        }
+        return res.status(200).json({ scores });
+      }
+    }
     return res.status(200).json({ scores: [] });
   }
 
-  // Get scores for each member
   const scores = [];
   for (const member of members) {
     const sc = await redis.zscore(KEY, member);
@@ -53,7 +73,7 @@ async function getLeaderboard(req, res) {
 }
 
 async function submitScore(req, res) {
-  const { name, score, combo } = req.body || {};
+  const { name, score, combo, game } = req.body || {};
 
   if (!name || typeof name !== 'string' || name.trim().length === 0) {
     return res.status(400).json({ error: 'Name is required' });
@@ -62,6 +82,7 @@ async function submitScore(req, res) {
     return res.status(400).json({ error: 'Invalid score' });
   }
 
+  const KEY = getKey(game || 'slash');
   const cleanName = name.trim().slice(0, 12);
   const member = JSON.stringify({ name: cleanName, combo: combo || 0, ts: Date.now() });
 

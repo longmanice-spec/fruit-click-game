@@ -8,61 +8,101 @@
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icon-192.png">
-  <title>切水果大作战</title>
-  <link rel="stylesheet" href="/css/style.css?v=16">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍉</text></svg>">
+  <title>水果游戏</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: none;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+      background: linear-gradient(135deg, #1a0a2e 0%, #16213e 50%, #0f3460 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: #fff;
+      padding: 24px;
+      position: fixed;
+      width: 100%;
+    }
+    h1 {
+      font-size: clamp(28px, 7vw, 40px);
+      margin-bottom: 8px;
+      text-shadow: 0 0 20px rgba(255, 140, 0, 0.4);
+    }
+    .subtitle {
+      font-size: 14px;
+      opacity: 0.6;
+      margin-bottom: 32px;
+    }
+    .games {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 100%;
+      max-width: 320px;
+    }
+    .game-card {
+      display: block;
+      text-decoration: none;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 24px;
+      text-align: center;
+      transition: transform 0.15s, background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .game-card:active {
+      transform: scale(0.97);
+      background: rgba(255, 255, 255, 0.1);
+    }
+    .game-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+    .game-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .game-desc {
+      font-size: 13px;
+      opacity: 0.6;
+    }
+    .card-slash { border-color: rgba(231, 76, 60, 0.3); }
+    .card-slash:active { background: rgba(231, 76, 60, 0.15); }
+    .card-match { border-color: rgba(155, 89, 182, 0.3); }
+    .card-match:active { background: rgba(155, 89, 182, 0.15); }
+  </style>
 </head>
 <body>
-  <div id="game-container">
-    <canvas id="game-canvas"></canvas>
-
-    <div id="hud" class="hidden">
-      <div class="hud-item hud-score">
-        <div class="hud-value" id="hud-score">0</div>
-        <div class="hud-label">分数</div>
-      </div>
-      <div class="hud-item hud-combo hidden" id="hud-combo">
-        <div class="hud-value" id="hud-combo-val">0</div>
-        <div class="hud-label">连击</div>
-      </div>
-      <div class="hud-item hud-timer">
-        <div class="hud-value" id="hud-timer">60</div>
-        <div class="hud-label">秒</div>
-      </div>
-    </div>
-
-    <div id="screen-start" class="screen">
-      <h1>🍉 切水果大作战</h1>
-      <p class="desc">滑动手指切开水果，限时60秒！</p>
-      <p class="tip">⚠️ 小心炸弹，切到扣10分</p>
-      <input type="text" id="input-name" placeholder="输入你的昵称" maxlength="12" autocomplete="off">
-      <button id="btn-start" class="btn btn-primary">开始游戏</button>
-      <button id="btn-rank" class="btn btn-ghost">🏆 排行榜</button>
-      <p class="pwa-tip" id="pwa-tip">📱 点击浏览器「分享 → 添加到主屏幕」可全屏游戏，不会误触退出</p>
-    </div>
-
-    <div id="screen-over" class="screen hidden">
-      <h1>⏰ 时间到！</h1>
-      <div class="card">
-        <div class="card-score" id="over-score">0</div>
-        <div class="card-label">最终得分</div>
-        <div class="card-combo">最高连击 <span id="over-combo">0</span></div>
-      </div>
-      <div class="status" id="over-status"></div>
-      <button id="btn-restart" class="btn btn-primary">再来一局</button>
-      <button id="btn-rank2" class="btn btn-ghost">🏆 排行榜</button>
-    </div>
-
-    <div id="screen-rank" class="screen hidden">
-      <h1>🏆 排行榜</h1>
-      <div id="rank-list" class="rank-list">
-        <p class="muted">加载中...</p>
-      </div>
-      <button id="btn-back" class="btn btn-ghost">← 返回</button>
-    </div>
+  <h1>🎮 水果游戏中心</h1>
+  <p class="subtitle">选择一个游戏开始挑战</p>
+  <div class="games">
+    <a href="/fruit-slash.html" class="game-card card-slash">
+      <div class="game-icon">🍉</div>
+      <div class="game-title">切水果大作战</div>
+      <div class="game-desc">滑动手指切开水果，60秒限时挑战</div>
+    </a>
+    <a href="/match3.html" class="game-card card-match">
+      <div class="game-icon">🍇</div>
+      <div class="game-title">水果消消乐</div>
+      <div class="game-desc">交换相邻水果，三连消除得分</div>
+    </a>
   </div>
-
-  <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
-  <script src="/js/game.js?v=16"></script>
+  <script>
+    // Prevent swipe-back in WeChat etc.
+    window.history.pushState(null,'',location.href);
+    window.history.pushState(null,'',location.href);
+    window.addEventListener('popstate',function(){window.history.pushState(null,'',location.href);});
+  </script>
 </body>
 </html>

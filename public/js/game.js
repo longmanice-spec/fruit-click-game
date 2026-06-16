@@ -544,7 +544,7 @@
     fetch('/api/leaderboard', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: playerName, score: score, combo: maxCombo })
+      body: JSON.stringify({ name: playerName, score: score, combo: maxCombo, game: 'slash' })
     }).catch(function () {});
   }
 
@@ -557,7 +557,7 @@
     fetch('/api/leaderboard', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: playerName, score: score, combo: maxCombo })
+      body: JSON.stringify({ name: playerName, score: score, combo: maxCombo, game: 'slash' })
     }).then(function (res) {
       if (res.ok) clearPending();
       overStatus.textContent = res.ok ? '✓ 已提交到排行榜' : '提交失败';
@@ -571,7 +571,7 @@
     screenOver.classList.add('hidden');
     screenRank.classList.remove('hidden');
     rankList.innerHTML = '<p class="muted">加载中...</p>';
-    fetch('/api/leaderboard').then(function (r) { return r.json(); }).then(function (data) {
+    fetch('/api/leaderboard?game=slash').then(function (r) { return r.json(); }).then(function (data) {
       if (!data.scores || data.scores.length === 0) {
         rankList.innerHTML = '<p class="muted">暂无记录</p>';
         return;
@@ -627,7 +627,7 @@
     if (score <= 0 || !playerName) return;
     try {
       localStorage.setItem(PENDING_KEY, JSON.stringify({
-        name: playerName, score: score, combo: maxCombo, ts: Date.now()
+        name: playerName, score: score, combo: maxCombo, game: 'slash', ts: Date.now()
       }));
     } catch (e) {}
   }
@@ -645,7 +645,7 @@
       fetch('/api/leaderboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: data.name, score: data.score, combo: data.combo })
+        body: JSON.stringify({ name: data.name, score: data.score, combo: data.combo, game: 'slash' })
       }).then(function (res) {
         if (res.ok) clearPending();
       }).catch(function () {});
@@ -657,7 +657,7 @@
     exitSaved = true;
     savePending();
     var blob = new Blob(
-      [JSON.stringify({ name: playerName, score: score, combo: maxCombo })],
+      [JSON.stringify({ name: playerName, score: score, combo: maxCombo, game: 'slash' })],
       { type: 'application/json' }
     );
     if (navigator.sendBeacon) {

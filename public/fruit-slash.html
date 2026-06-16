@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <title>切水果大作战</title>
+  <link rel="stylesheet" href="/css/style.css?v=17">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍉</text></svg>">
+</head>
+<body>
+  <a href="/" style="position:fixed;top:max(env(safe-area-inset-top,12px),12px);left:12px;color:rgba(255,255,255,0.6);text-decoration:none;font-size:14px;z-index:300;padding:6px 10px;touch-action:manipulation;">← 返回</a>
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+
+    <div id="hud" class="hidden">
+      <div class="hud-item hud-score">
+        <div class="hud-value" id="hud-score">0</div>
+        <div class="hud-label">分数</div>
+      </div>
+      <div class="hud-item hud-combo hidden" id="hud-combo">
+        <div class="hud-value" id="hud-combo-val">0</div>
+        <div class="hud-label">连击</div>
+      </div>
+      <div class="hud-item hud-timer">
+        <div class="hud-value" id="hud-timer">60</div>
+        <div class="hud-label">秒</div>
+      </div>
+    </div>
+
+    <div id="screen-start" class="screen">
+      <h1>🍉 切水果大作战</h1>
+      <p class="desc">滑动手指切开水果，限时60秒！</p>
+      <p class="tip">⚠️ 小心炸弹，切到扣10分</p>
+      <input type="text" id="input-name" placeholder="输入你的昵称" maxlength="12" autocomplete="off">
+      <button id="btn-start" class="btn btn-primary">开始游戏</button>
+      <button id="btn-rank" class="btn btn-ghost">🏆 排行榜</button>
+      <p class="pwa-tip" id="pwa-tip">📱 点击浏览器「分享 → 添加到主屏幕」可全屏游戏，不会误触退出</p>
+    </div>
+
+    <div id="screen-over" class="screen hidden">
+      <h1>⏰ 时间到！</h1>
+      <div class="card">
+        <div class="card-score" id="over-score">0</div>
+        <div class="card-label">最终得分</div>
+        <div class="card-combo">最高连击 <span id="over-combo">0</span></div>
+      </div>
+      <div class="status" id="over-status"></div>
+      <button id="btn-restart" class="btn btn-primary">再来一局</button>
+      <button id="btn-rank2" class="btn btn-ghost">🏆 排行榜</button>
+    </div>
+
+    <div id="screen-rank" class="screen hidden">
+      <h1>🏆 排行榜</h1>
+      <div id="rank-list" class="rank-list">
+        <p class="muted">加载中...</p>
+      </div>
+      <button id="btn-back" class="btn btn-ghost">← 返回</button>
+    </div>
+  </div>
+
+  <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
+  <script src="/js/game.js?v=17"></script>
+</body>
+</html>
